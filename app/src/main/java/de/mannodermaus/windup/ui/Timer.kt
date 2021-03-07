@@ -1,20 +1,29 @@
+/*
+ * Copyright 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.mannodermaus.windup.ui
 
 import androidx.annotation.IntRange
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -50,16 +59,20 @@ fun CountdownTimer(
     val animatedValue by animateLongAsState(value)
     val animatedMax by animateLongAsState(max)
     val animatedFontSize by animateDpAsState(if (isRunning) 60.dp else 40.dp)
-    val animatedFontColor by animateColorAsState(if (isRunning) {
-        MaterialTheme.colors.onSurface
-    } else {
-        MaterialTheme.colors.onSurface.copy(alpha = 0.4f)
-    })
-    val animatedLineFactor by animateFloatAsState(if (value.toInt() % 2 == 0) {
-        0.8f
-    } else {
-        0.7f
-    })
+    val animatedFontColor by animateColorAsState(
+        if (isRunning) {
+            MaterialTheme.colors.onSurface
+        } else {
+            MaterialTheme.colors.onSurface.copy(alpha = 0.4f)
+        }
+    )
+    val animatedLineFactor by animateFloatAsState(
+        if (value.toInt() % 2 == 0) {
+            0.8f
+        } else {
+            0.7f
+        }
+    )
 
     Box(
         modifier = modifier
@@ -99,86 +112,39 @@ private fun Modifier.circularTickDial(
     lineLengthFactor: Float,
     lineThickness: Dp
 ) = this.drawBehind {
-    rotate(270f, block = {
-        val radius = size.minDimension / 2
-        val angle = 2 * PI / 60
+    rotate(
+        degrees = 270f,
+        block = {
+            val radius = size.minDimension / 2
+            val angle = 2 * PI / 60
 
-        val startColor = tickColors.lastOrNull() ?: Color.Black
-        val endColor = tickColors.firstOrNull() ?: Color.Black
+            val startColor = tickColors.lastOrNull() ?: Color.Black
+            val endColor = tickColors.firstOrNull() ?: Color.Black
 
-        for (i in 0..60) {
-            // Polar to cartesian
-            val direction = Offset(
-                x = cos(angle * i).toFloat(),
-                y = sin(angle * i).toFloat()
-            )
+            for (i in 0..60) {
+                // Polar to cartesian
+                val direction = Offset(
+                    x = cos(angle * i).toFloat(),
+                    y = sin(angle * i).toFloat()
+                )
 
-            // Choose color based on the elapsed time
-            val fraction =
-                ceil(i * (max / 60f)).toInt() // todo this doesn't work fix it pls thx
-            val color = if (fraction > value) {
-                inactiveColor
-            } else {
-                lerp(startColor, endColor, i / 60f)
+                // Choose color based on the elapsed time
+                val fraction =
+                    ceil(i * (max / 60f)).toInt() // todo this doesn't work fix it pls thx
+                val color = if (fraction > value) {
+                    inactiveColor
+                } else {
+                    lerp(startColor, endColor, i / 60f)
+                }
+
+                drawLine(
+                    color = color,
+                    start = center + direction * radius * lineLengthFactor,
+                    end = center + direction * radius,
+                    strokeWidth = lineThickness.value,
+                    cap = StrokeCap.Round
+                )
             }
-
-            drawLine(
-                color = color,
-                start = center + direction * radius * lineLengthFactor,
-                end = center + direction * radius,
-                strokeWidth = lineThickness.value,
-                cap = StrokeCap.Round
-            )
         }
-    })
-}
-
-@Composable
-fun TimerKeypad(
-    onDigit: (Int) -> Unit,
-    onBackspace: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Row(horizontalArrangement = Arrangement.SpaceAround) {
-            TimerInputButton(text = "1", onClick = { onDigit(1) })
-            TimerInputButton(text = "2", onClick = { onDigit(2) })
-            TimerInputButton(text = "3", onClick = { onDigit(3) })
-        }
-        Row(horizontalArrangement = Arrangement.SpaceAround) {
-            TimerInputButton(text = "4", onClick = { onDigit(4) })
-            TimerInputButton(text = "5", onClick = { onDigit(5) })
-            TimerInputButton(text = "6", onClick = { onDigit(6) })
-        }
-        Row(horizontalArrangement = Arrangement.SpaceAround) {
-            TimerInputButton(text = "7", onClick = { onDigit(7) })
-            TimerInputButton(text = "8", onClick = { onDigit(8) })
-            TimerInputButton(text = "9", onClick = { onDigit(9) })
-        }
-        Row(horizontalArrangement = Arrangement.SpaceAround) {
-            TimerInputButton(text = "", onClick = {})
-            TimerInputButton(text = "0", onClick = { onDigit(0) })
-            TimerInputButton(text = "\u232b", onClick = { onBackspace() })
-        }
-    }
-}
-
-@Composable
-private fun TimerInputButton(text: String, onClick: () -> Unit) {
-    TextButton(
-        onClick = onClick,
-        enabled = text.isNotBlank(),
-        modifier = Modifier
-            .height(80.dp)
-            .aspectRatio(1f),
-    ) {
-        Text(
-            style = MaterialTheme.typography.h3,
-            text = text
-        )
-    }
+    )
 }
