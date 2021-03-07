@@ -18,7 +18,7 @@ package de.mannodermaus.windup
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import de.mannodermaus.windup.timer.MainScreen
 import de.mannodermaus.windup.ui.theme.MyTheme
